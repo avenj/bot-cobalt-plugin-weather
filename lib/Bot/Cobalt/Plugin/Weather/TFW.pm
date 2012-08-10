@@ -1,4 +1,5 @@
 package Bot::Cobalt::Plugin::Weather::TFW;
+our $VERSION = '0.001';
 
 use Bot::Cobalt;
 use Bot::Cobalt::Common;
