@@ -1,5 +1,5 @@
 package Bot::Cobalt::Plugin::Weather::TFW;
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 use Bot::Cobalt;
 use Bot::Cobalt::Common;
@@ -39,20 +39,18 @@ sub Cobalt_unregister {
 
 sub Bot_public_cmd_tfw {
   my ($self, $core) = splice @_, 0, 2;
-
   my $msg = ${ $_[0] };
 
-  my $zip = $msg->message_array->[0];
+  my $location = uri_escape(join ' ', @{ $msg->message_array });
 
-  unless (defined $zip && $zip =~ /^[0-9]{5}$/) {
+  unless ($location) {
     broadcast( 'message', $msg->context, $msg->channel,
-      "I need a fucking zipcode to look up!"
+      "I need a fucking location to look up!"
     );
-
     return PLUGIN_EAT_ALL
   }
 
-  my $req_url = TFW . $zip ;
+  my $req_url = TFW . $location ;
 
   broadcast( 'www_request',
     HTTP::Request->new( GET => $req_url ),
@@ -107,6 +105,15 @@ sub Bot_fuckingweather_resp_recv {
     ## Flavor
     if ($tok->[0] eq 'p' && ($args->{class}||'') eq 'flavor') {
       $flavor = $html->get_text('/p');
+    }
+
+    if (
+          defined $location
+       && defined $temp
+       && defined $remark
+       && defined $flavor 
+    ) {
+      last 
     }
   }
 
