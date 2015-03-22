@@ -178,3 +178,34 @@ sub Bot_public_cmd_wx {
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
+
+=head1 SYNOPSIS
+
+  # In your plugins.conf:
+  WX:
+    Module: Bot::Cobalt::Plugin::Weather
+    Opts:
+      API_Key: "my OpenWeatherMap API key here"
+
+  # On IRC:
+  > !wx Boston, MA
+  > !wx forecast Toronto, Canada
+
+=head1 DESCRIPTION
+
+A weather conditions/forecast retrieval plugin for L<Bot::Cobalt>.
+
+Uses L<http://www.openweathermap.org/> via L<POEx::Weather::OpenWeatherMap> /
+L<Weather::OpenWeatherMap> for retrieval.
+
+=head1 AUTHOR
+
+Jon Portnoy <avenj@cobaltirc.org>
+
+=cut
