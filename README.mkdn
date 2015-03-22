@@ -1,0 +1,26 @@
+# NAME
+
+Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
+
+# SYNOPSIS
+
+    # In your plugins.conf:
+    WX:
+      Module: Bot::Cobalt::Plugin::Weather
+      Opts:
+        API_Key: "my OpenWeatherMap API key here"
+
+    # On IRC:
+    > !wx Boston, MA
+    > !wx forecast Toronto, Canada
+
+# DESCRIPTION
+
+A weather conditions/forecast retrieval plugin for [Bot::Cobalt](https://metacpan.org/pod/Bot::Cobalt).
+
+Uses [http://www.openweathermap.org/](http://www.openweathermap.org/) via [POEx::Weather::OpenWeatherMap](https://metacpan.org/pod/POEx::Weather::OpenWeatherMap) /
+[Weather::OpenWeatherMap](https://metacpan.org/pod/Weather::OpenWeatherMap) for retrieval.
+
+# AUTHOR
+
+Jon Portnoy <avenj@cobaltirc.org>
