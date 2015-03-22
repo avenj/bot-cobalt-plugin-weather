@@ -85,11 +85,11 @@ sub pwx_weather {
   my $res     = $_[ARG0];
   my $tag     = $res->request->tag;
 
-  my $place = $res->name;
+  my $place   = $res->name;
 
-  my $tempf = $res->temp_f;
-  my $tempc = $res->temp_c;
-  my $humid = $res->humidity;
+  my $tempf   = $res->temp_f;
+  my $tempc   = $res->temp_c;
+  my $humid   = $res->humidity;
 
   my $wind    = $res->wind_speed_mph;
   my $gust    = $res->wind_gust_mph;
@@ -129,11 +129,11 @@ sub pwx_forecast {
     my $temp_hi_c = $day->temp_max_c;
     my $temp_lo_c = $day->temp_min_c;
 
-    my $terse   = $day->conditions_terse;
-    my $verbose = $day->conditions_verbose;
+    my $terse     = $day->conditions_terse;
+    my $verbose   = $day->conditions_verbose;
 
-    my $wind    = $day->wind_speed_mph;
-    my $winddir = $day->wind_direction;
+    my $wind      = $day->wind_speed_mph;
+    my $winddir   = $day->wind_direction;
 
     my $str = "${date}: High of ${temp_hi_f}F/${temp_hi_c}C";
     $str .= ", low of ${temp_lo_f}F/${temp_lo_c}C";
