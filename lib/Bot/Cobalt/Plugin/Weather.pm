@@ -50,7 +50,7 @@ sub _start {
   my $self = $_[OBJECT];
 
   my $pcfg = core->get_plugin_cfg($self);
-  my $api_key = $pcfg->{APIKey};
+  my $api_key = $pcfg->{API_Key};
 
   unless (defined $api_key) {
     logger->warn(
