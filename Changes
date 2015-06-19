@@ -1,5 +1,9 @@
 Revision history for Perl module Bot::Cobalt::Plugin::Weather
 
+0.001002 2015-06-19
+
+  - Fix API_Key config (... but OWM doesn't actually care, currently)
+
 0.001001 2015-03-22
 
   - Initial release
