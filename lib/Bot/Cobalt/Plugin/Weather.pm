@@ -295,7 +295,8 @@ Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
   # On IRC:
   > !wx Boston, MA
   > !wx forecast Toronto, Canada
-  > !wx hourly Moscow, Russia
+  # Previous queries remembered per-user for three minutes:
+  > !wx hourly
 
 =head1 DESCRIPTION
 
