@@ -57,7 +57,7 @@ sub _start {
 
   my $api_key       = $pcfg->{API_Key} || $pcfg->{APIKey};
   unless (defined $api_key) {
-    logger->warn($_) for
+    logger->error($_) for
       "No 'API_Key' found in plugin configuration!",
       "Requests will likely fail."
   }
