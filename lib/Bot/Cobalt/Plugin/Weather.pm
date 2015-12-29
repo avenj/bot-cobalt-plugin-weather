@@ -8,9 +8,13 @@ use Bot::Cobalt::Common;
 use POE;
 use POEx::Weather::OpenWeatherMap;
 
+use Object::RateLimiter;
+
 use PerlX::Maybe;
 
 sub new { bless +{}, shift }
+
+sub _limiter { $_[0]->{_limiter} }
 
 sub pwx { $_[1] ? $_[0]->{pwx} = $_[1] : $_[0]->{pwx} }
 
@@ -38,7 +42,6 @@ sub Cobalt_register {
   PLUGIN_EAT_NONE
 }
 
-
 sub Cobalt_unregister {
   my ($self, $core) = splice @_, 0, 2;
   logger->info("Shutting down POEx::Weather::OpenWeatherMap ...");
@@ -47,21 +50,27 @@ sub Cobalt_unregister {
   PLUGIN_EAT_NONE
 }
 
-
 sub _start {
   my $self = $_[OBJECT];
 
   my $pcfg = core->get_plugin_cfg($self);
-  my $api_key       = $pcfg->{API_Key};
-  my $do_cache      = $pcfg->{DisableCache} ? 0 : 1;
-  my $cache_expiry  = $pcfg->{CacheExpiry};
-  my $cache_dir     = $pcfg->{CacheDir};
 
+  my $api_key       = $pcfg->{API_Key} || $pcfg->{APIKey};
   unless (defined $api_key) {
     logger->warn($_) for
       "No 'API_Key' found in plugin configuration!",
       "Requests will likely fail."
   }
+
+
+  my $do_cache      = $pcfg->{DisableCache} ? 0 : 1;
+  my $cache_expiry  = $pcfg->{CacheExpiry};
+  my $cache_dir     = $pcfg->{CacheDir};
+
+  my $ratelimit     = $pcfg->{RateLimit} || 60;
+  $self->{_limiter} = Object::RateLimiter->new(
+    seconds => 60, events => $ratelimit
+  );
 
   # FIXME configurable cache_dir / cache_expiry
   $self->pwx(
@@ -200,6 +209,13 @@ sub Bot_public_cmd_wx {
     $location = join ' ', @parts
   }
 
+  if ($self->_limiter->delay) {
+    broadcast( message => $msg->context => $msg->channel =>
+      "Weather is currently rate-limited; wait a minute and try again."
+    );
+    return PLUGIN_EAT_NONE
+  }
+
   my $tag = hash(
     context => $msg->context,
     channel => $msg->channel,
@@ -230,11 +246,13 @@ Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
     Module: Bot::Cobalt::Plugin::Weather
     Opts:
       API_Key: "my OpenWeatherMap API key here"
-      # Optionally disable caching:
-      #DisableCache: 1
+      # OpenWeatherMap's free tier allows 60 requests per minute (default):
+      RateLimit: 60
+      # Caching is on by default:
+      DisableCache: 0
       # Defaults are probably fine:
-      #CacheExpiry: 1200
-      #CacheDir: ~
+      CacheExpiry: 1200
+      CacheDir: ~
 
   # On IRC:
   > !wx Boston, MA

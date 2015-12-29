@@ -9,11 +9,13 @@ Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
       Module: Bot::Cobalt::Plugin::Weather
       Opts:
         API_Key: "my OpenWeatherMap API key here"
-        # Optionally disable caching:
-        #DisableCache: 1
+        # OpenWeatherMap's free tier allows 60 requests per minute (default):
+        RateLimit: 60
+        # Caching is on by default:
+        DisableCache: 0
         # Defaults are probably fine:
-        #CacheExpiry: 1200
-        #CacheDir: ~
+        CacheExpiry: 1200
+        CacheDir: ~
 
     # On IRC:
     > !wx Boston, MA
