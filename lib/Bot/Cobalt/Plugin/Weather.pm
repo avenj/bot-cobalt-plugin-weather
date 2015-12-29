@@ -191,7 +191,7 @@ sub pwx_forecast {
 sub Bot_wx_timer_expire_item {
   my ($self, $core) = splice @_, 0, 2;
   my $context = ${ $_[0] };
-  my $nick    = ${ $_[0] };
+  my $nick    = ${ $_[1] };
   return unless exists $self->{location}->{$context};
   delete $self->{location}->{$context}->{$nick};
   delete $self->{location}->{$context}
