@@ -12,7 +12,7 @@ use Object::RateLimiter;
 
 use PerlX::Maybe;
 
-sub new { bless +{}, shift }
+sub new { bless +{ location => +{} }, shift }
 
 sub _limiter { $_[0]->{_limiter} }
 
@@ -35,6 +35,7 @@ sub Cobalt_register {
 
   register( $self, SERVER =>
     'public_cmd_wx',
+    'wx_timer_expire_item',
   );
 
   logger->info("Loaded: wx");
@@ -45,6 +46,7 @@ sub Cobalt_register {
 sub Cobalt_unregister {
   my ($self, $core) = splice @_, 0, 2;
   logger->info("Shutting down POEx::Weather::OpenWeatherMap ...");
+  $core->timer_del_alias( $core->get_plugin_alias($self) );
   $self->pwx->stop if $self->pwx;
   logger->info("wx unloaded");
   PLUGIN_EAT_NONE
@@ -186,26 +188,54 @@ sub pwx_forecast {
   }
 }
 
+sub Bot_wx_timer_expire_item {
+  my ($self, $core) = splice @_, 0, 2;
+  my $context = ${ $_[0] };
+  my $nick    = ${ $_[0] };
+  return unless exists $self->{location}->{$context};
+  delete $self->{location}->{$context}->{$nick};
+  delete $self->{location}->{$context}
+    unless keys %{ $self->{location}->{$context} };
+}
 
 sub Bot_public_cmd_wx {
   my ($self, $core) = splice @_, 0, 2;
   my $msg     = ${ $_[0] };
+  my $context = $msg->context;
+
+  my $loc   = $self->{location};
+  my $lower = lc_irc $msg->src_nick;
 
   my ($location, $fcast, $hourly);
   my @parts = @{ $msg->message_array };
+
   if ( ($parts[0] || '') eq 'forecast' ) {
-    $location = join ' ', @parts[1 .. $#parts];
-    $fcast++
-  } elsif ( ($parts[0] || '') eq 'hourly' ) {
-    $location = join ' ', @parts[1 .. $#parts];
+    $fcast++;
+    shift @parts;
+  } elsif ( ($parts[0] || '' ) eq 'hourly' ) {
     $hourly++;
-  } elsif (!@parts) {
-    broadcast( message => $msg->context => $msg->channel =>
-      $msg->src_nick . ": no location specified"
-    );
-    return PLUGIN_EAT_NONE
+    shift @parts;
+  }
+
+  if (!@parts) {
+    if ($loc->{ $context } && $loc->{ $context }->{ $lower }) {
+      $location = $loc->{ $context }->{ $lower };
+    } else {
+      broadcast( message => $context => $msg->channel =>
+        $msg->src_nick . ': no location specified'
+      );
+      return PLUGIN_EAT_NONE
+    }
   } else {
-    $location = join ' ', @parts
+    $location = join ' ', @parts;
+    $loc->{ $context }->{ $lower } = $location;
+    $core->timer_set( 180,
+      +{
+        Event => 'wx_timer_expire_item',
+        Args  => [ $context, $lower ],
+        Alias => $core->get_plugin_alias($self),
+      }
+    );
   }
 
   if ($self->_limiter->delay) {
