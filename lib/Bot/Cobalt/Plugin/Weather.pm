@@ -53,11 +53,12 @@ sub _start {
   my $api_key = $pcfg->{API_Key};
 
   unless (defined $api_key) {
-    logger->warn(
-      "No 'API_Key' found in plugin configuration, continuing without"
-    )
+    logger->warn($_) for
+      "No 'API_Key' found in plugin configuration!",
+      "Requests will likely fail."
   }
 
+  # FIXME configurable cache params
   $self->pwx(
     POEx::Weather::OpenWeatherMap->new(
       ( defined $api_key ? (api_key => $api_key) : () ),
