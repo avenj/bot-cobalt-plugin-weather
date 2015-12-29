@@ -142,50 +142,59 @@ sub pwx_forecast {
 
   if ($res->hourly) {
     for my $hr ($res->as_array->sliced(1..3)->all) {
-      my $date    = $hr->dt->hms;
-      my $temp    = $hr->temp;
-      my $temp_c  = $hr->temp_c;
-
-      my $terse   = $hr->conditions_terse;
-      my $verbose = $hr->conditions_verbose;
-
-      my $wind    = $hr->wind_speed_mph;
-      my $winddir = $hr->wind_direction;
-
-      my $rain    = $hr->rain;
-      my $snow    = $hr->snow;
-
-      my $str = "${date} UTC: ${temp}F/${temp_c}C";
-      $str .= ", wind $winddir at ${wind}mph";
-      $str .= ", ${terse}: $verbose";
-      $str .= ", rain ${rain}mm" if $rain;
-      $str .= ", snow ${snow}mm" if $snow;
+      my $str = $self->_hourly_forecast_str($hr);
       broadcast( message => $tag->context => $tag->channel => $str );
     }
   } else {
     my $itr = $res->iter;
     while (my $day = $itr->()) {
-      my $date = $day->dt->day_name;
-
-      my $temp_hi_f = $day->temp_max_f;
-      my $temp_lo_f = $day->temp_min_f;
-      my $temp_hi_c = $day->temp_max_c;
-      my $temp_lo_c = $day->temp_min_c;
-
-      my $terse     = $day->conditions_terse;
-      my $verbose   = $day->conditions_verbose;
-
-      my $wind      = $day->wind_speed_mph;
-      my $winddir   = $day->wind_direction;
-
-      my $str = "${date}: High of ${temp_hi_f}F/${temp_hi_c}C";
-      $str .= ", low of ${temp_lo_f}F/${temp_lo_c}C";
-      $str .= ", wind $winddir at ${wind}mph";
-      $str .= "; $terse: $verbose";
-
+      my $str = $self->_daily_forecast_str($day);
       broadcast( message => $tag->context => $tag->channel => $str );
     }
   }
+}
+
+sub _hourly_forecast_str {
+  my ($self, $hr) = @_;
+  my $date    = $hr->dt->hms;
+  my $temp    = $hr->temp;
+  my $temp_c  = $hr->temp_c;
+
+  my $terse   = $hr->conditions_terse;
+  my $verbose = $hr->conditions_verbose;
+
+  my $wind    = $hr->wind_speed_mph;
+  my $winddir = $hr->wind_direction;
+
+  my $rain    = $hr->rain;
+  my $snow    = $hr->snow;
+
+  "${date} UTC: ${temp}F/${temp_c}C"
+  . ", wind $winddir at ${wind}mph"
+  . ", ${terse}: $verbose"
+  . ($rain ? ", rain ${rain}mm" : '')
+  . ($snow ? ", snow ${snow}mm" : '')
+}
+
+sub _daily_forecast_str {
+  my ($self, $day) = @_;
+  my $date = $day->dt->day_name;
+
+  my $temp_hi_f = $day->temp_max_f;
+  my $temp_lo_f = $day->temp_min_f;
+  my $temp_hi_c = $day->temp_max_c;
+  my $temp_lo_c = $day->temp_min_c;
+
+  my $terse     = $day->conditions_terse;
+  my $verbose   = $day->conditions_verbose;
+
+  my $wind      = $day->wind_speed_mph;
+  my $winddir   = $day->wind_direction;
+
+  "${date}: High of ${temp_hi_f}F/${temp_hi_c}C"
+  . ", low of ${temp_lo_f}F/${temp_lo_c}C"
+  . ", wind $winddir at ${wind}mph"
+  . "; $terse: $verbose"
 }
 
 sub Bot_wx_timer_expire_item {
