@@ -141,8 +141,8 @@ sub pwx_forecast {
       my $str = "${date}UTC: ${temp}F/${temp_c}C";
       $str .= ", wind $winddir at ${wind}mph";
       $str .= ", ${terse}: $verbose";
-      $str .= ", rain ${rain}in" if $rain;
-      $str .= ", snow ${snow}in" if $snow;
+      $str .= ", rain ${rain}mm" if $rain;
+      $str .= ", snow ${snow}mm" if $snow;
       broadcast( message => $tag->context => $tag->channel => $str );
     }
   } else {
