@@ -50,7 +50,8 @@ sub _start {
   my $self = $_[OBJECT];
 
   my $pcfg = core->get_plugin_cfg($self);
-  my $api_key = $pcfg->{API_Key};
+  my $api_key  = $pcfg->{API_Key};
+  my $do_cache = $pcfg->{DisableCache} ? 0 : 1;
 
   unless (defined $api_key) {
     logger->warn($_) for
@@ -58,10 +59,11 @@ sub _start {
       "Requests will likely fail."
   }
 
-  # FIXME configurable cache params
+  # FIXME configurable cache_dir / cache_expiry
   $self->pwx(
     POEx::Weather::OpenWeatherMap->new(
       ( defined $api_key ? (api_key => $api_key) : () ),
+      ( $do_cache ? (cache => 1) : () ),
       event_prefix  => 'pwx_',
     )
   );
@@ -221,6 +223,8 @@ Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
     Module: Bot::Cobalt::Plugin::Weather
     Opts:
       API_Key: "my OpenWeatherMap API key here"
+      # Optionally disable caching:
+      #DisableCache: 1
 
   # On IRC:
   > !wx Boston, MA
