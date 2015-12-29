@@ -120,27 +120,52 @@ sub pwx_forecast {
       "Forecast for $place ->"
   );
 
-  my $itr = $res->iter;
-  while (my $day = $itr->()) {
-    my $date = $day->dt->day_name;
+  if ($res->hourly) {
+    my $itr = $res->iter(3);
+    for my $hr ($itr->()) {
+      my $date    = $hr->dt->hms;
+      my $temp    = $hr->temp;
+      my $temp_c  = $hr->temp_c;
 
-    my $temp_hi_f = $day->temp_max_f;
-    my $temp_lo_f = $day->temp_min_f;
-    my $temp_hi_c = $day->temp_max_c;
-    my $temp_lo_c = $day->temp_min_c;
+      my $terse   = $hr->conditions_terse;
+      my $verbose = $hr->conditions_verbose;
 
-    my $terse     = $day->conditions_terse;
-    my $verbose   = $day->conditions_verbose;
+      my $wind    = $hr->wind_speed_mph;
+      my $winddir = $hr->wind_direction;
 
-    my $wind      = $day->wind_speed_mph;
-    my $winddir   = $day->wind_direction;
+      my $rain    = $hr->rain;
+      my $snow    = $hr->snow;
 
-    my $str = "${date}: High of ${temp_hi_f}F/${temp_hi_c}C";
-    $str .= ", low of ${temp_lo_f}F/${temp_lo_c}C";
-    $str .= ", wind $winddir at ${wind}mph";
-    $str .= "; $terse: $verbose";
+      my $str = "${date}UTC: ${temp}F/${temp_c}C";
+      $str .= ", wind $winddir at ${wind}mph";
+      $str .= ", ${terse}: $verbose";
+      $str .= ", rain ${rain}in" if $rain;
+      $str .= ", snow ${snow}in" if $snow;
+      broadcast( message => $tag->context => $tag->channel => $str );
+    }
+  } else {
+    my $itr = $res->iter;
+    while (my $day = $itr->()) {
+      my $date = $day->dt->day_name;
 
-    broadcast( message => $tag->context => $tag->channel => $str );
+      my $temp_hi_f = $day->temp_max_f;
+      my $temp_lo_f = $day->temp_min_f;
+      my $temp_hi_c = $day->temp_max_c;
+      my $temp_lo_c = $day->temp_min_c;
+
+      my $terse     = $day->conditions_terse;
+      my $verbose   = $day->conditions_verbose;
+
+      my $wind      = $day->wind_speed_mph;
+      my $winddir   = $day->wind_direction;
+
+      my $str = "${date}: High of ${temp_hi_f}F/${temp_hi_c}C";
+      $str .= ", low of ${temp_lo_f}F/${temp_lo_c}C";
+      $str .= ", wind $winddir at ${wind}mph";
+      $str .= "; $terse: $verbose";
+
+      broadcast( message => $tag->context => $tag->channel => $str );
+    }
   }
 }
 
@@ -149,11 +174,14 @@ sub Bot_public_cmd_wx {
   my ($self, $core) = splice @_, 0, 2;
   my $msg     = ${ $_[0] };
 
-  my ($location, $fcast);
+  my ($location, $fcast, $hourly);
   my @parts = @{ $msg->message_array };
   if ( ($parts[0] || '') eq 'forecast' ) {
     $location = join ' ', @parts[1 .. $#parts];
     $fcast++
+  } elsif ( ($parts[0] || '') eq 'hourly' ) {
+    $location = join ' ', @parts[1 .. $#parts];
+    $hourly++;
   } elsif (!@parts) {
     broadcast( message => $msg->context => $msg->channel =>
       $msg->src_nick . ": no location specified"
@@ -171,7 +199,8 @@ sub Bot_public_cmd_wx {
   $self->pwx->get_weather(
     location => $location,
     tag      => $tag,
-    ( $fcast ? (forecast => 1, days => 3) : () ),
+    ( $fcast  ? (forecast => 1, days => 3) : () ),
+    ( $hourly ? (forecast => 1, hourly => 1, days => 1) : () ),
   );
 
   PLUGIN_EAT_NONE
@@ -196,6 +225,7 @@ Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
   # On IRC:
   > !wx Boston, MA
   > !wx forecast Toronto, Canada
+  > !wx hourly Moscow, Russia
 
 =head1 DESCRIPTION
 
