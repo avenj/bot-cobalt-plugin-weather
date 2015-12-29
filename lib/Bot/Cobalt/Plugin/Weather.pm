@@ -47,6 +47,7 @@ sub Cobalt_unregister {
   my ($self, $core) = splice @_, 0, 2;
   logger->info("Shutting down POEx::Weather::OpenWeatherMap ...");
   $core->timer_del_alias( $core->get_plugin_alias($self) );
+  $self->{location} = +{};
   $self->pwx->stop if $self->pwx;
   logger->info("wx unloaded");
   PLUGIN_EAT_NONE
