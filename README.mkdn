@@ -11,6 +11,9 @@ Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
         API_Key: "my OpenWeatherMap API key here"
         # Optionally disable caching:
         #DisableCache: 1
+        # Defaults are probably fine:
+        #CacheExpiry: 1200
+        #CacheDir: ~
 
     # On IRC:
     > !wx Boston, MA

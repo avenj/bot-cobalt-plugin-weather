@@ -8,6 +8,8 @@ use Bot::Cobalt::Common;
 use POE;
 use POEx::Weather::OpenWeatherMap;
 
+use PerlX::Maybe;
+
 sub new { bless +{}, shift }
 
 sub pwx { $_[1] ? $_[0]->{pwx} = $_[1] : $_[0]->{pwx} }
@@ -50,8 +52,10 @@ sub _start {
   my $self = $_[OBJECT];
 
   my $pcfg = core->get_plugin_cfg($self);
-  my $api_key  = $pcfg->{API_Key};
-  my $do_cache = $pcfg->{DisableCache} ? 0 : 1;
+  my $api_key       = $pcfg->{API_Key};
+  my $do_cache      = $pcfg->{DisableCache} ? 0 : 1;
+  my $cache_expiry  = $pcfg->{CacheExpiry};
+  my $cache_dir     = $pcfg->{CacheDir};
 
   unless (defined $api_key) {
     logger->warn($_) for
@@ -62,9 +66,12 @@ sub _start {
   # FIXME configurable cache_dir / cache_expiry
   $self->pwx(
     POEx::Weather::OpenWeatherMap->new(
-      ( defined $api_key ? (api_key => $api_key) : () ),
-      ( $do_cache ? (cache => 1) : () ),
       event_prefix  => 'pwx_',
+      cache         => $do_cache,
+
+      maybe api_key      => $api_key,
+      maybe cache_expiry => $cache_expiry,
+      maybe cache_dir    => $cache_dir,
     )
   );
 
@@ -225,6 +232,9 @@ Bot::Cobalt::Plugin::Weather - Weather retrieval plugin for Bot::Cobalt
       API_Key: "my OpenWeatherMap API key here"
       # Optionally disable caching:
       #DisableCache: 1
+      # Defaults are probably fine:
+      #CacheExpiry: 1200
+      #CacheDir: ~
 
   # On IRC:
   > !wx Boston, MA
