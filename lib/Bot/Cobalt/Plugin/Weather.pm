@@ -138,7 +138,7 @@ sub pwx_forecast {
       my $rain    = $hr->rain;
       my $snow    = $hr->snow;
 
-      my $str = "${date}UTC: ${temp}F/${temp_c}C";
+      my $str = "${date} UTC: ${temp}F/${temp_c}C";
       $str .= ", wind $winddir at ${wind}mph";
       $str .= ", ${terse}: $verbose";
       $str .= ", rain ${rain}mm" if $rain;
