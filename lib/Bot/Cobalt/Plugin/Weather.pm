@@ -72,7 +72,6 @@ sub _start {
     seconds => 60, events => $ratelimit
   );
 
-  # FIXME configurable cache_dir / cache_expiry
   $self->pwx(
     POEx::Weather::OpenWeatherMap->new(
       event_prefix  => 'pwx_',
