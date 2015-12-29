@@ -121,8 +121,7 @@ sub pwx_forecast {
   );
 
   if ($res->hourly) {
-    my $itr = $res->iter(3);
-    for my $hr ($itr->()) {
+    for my $hr ($res->as_array->sliced(1..3)->all) {
       my $date    = $hr->dt->hms;
       my $temp    = $hr->temp;
       my $temp_c  = $hr->temp_c;
